@@ -1,0 +1,52 @@
+version: '3.8'
+
+# pull_policy: build → 绿联「重新部署」走 compose up 时也会触发 build（不只用旧镜像）
+# 若 NAS 上 Compose 较旧、仍不重建：SSH 执行 docker compose up -d --build --force-recreate
+services:
+  api:
+    image: baby-food-api:local
+    pull_policy: build
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: baby-food-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=file:/data/baby-food.db
+      - TZ=Asia/Shanghai
+      - PORT=3000
+      - NODE_ENV=production
+      # ====== AI 问答（DeepSeek，OpenAI 兼容协议）======
+      # 值从同目录 .env 读取（docker compose 会自动加载），没配就是空 → 问 AI 页显示未配置提示
+      # 详见 DEPLOY.md「配置 AI 问答（DeepSeek）」
+      - AI_API_KEY=${AI_API_KEY:-}
+      - AI_BASE_URL=${AI_BASE_URL:-https://api.deepseek.com/v1}
+      - AI_MODEL=${AI_MODEL:-deepseek-chat}
+      # ====== 宝宝出生日期（YYYY-MM-DD）：月龄展示 + AI 上下文，同目录 .env 配置 ======
+      - BABY_BIRTH=${BABY_BIRTH:-}
+      # 宝宝小名（可选）：徽标与 AI 称呼，留空显示「宝宝」；同目录 .env 配 BABY_NICKNAME=xx
+      - BABY_NICKNAME=${BABY_NICKNAME:-}
+    volumes:
+      - ../db/baby-food:/data
+    networks:
+      - baby-food-net
+    # 不暴露端口到 host，由 web 容器内 nginx 反向代理访问
+
+  web:
+    image: baby-food-web:local
+    pull_policy: build
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: baby-food-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "8088:80"   # 绿联 NAS 上通过 8088 端口访问
+    networks:
+      - baby-food-net
+
+networks:
+  baby-food-net:
+    driver: bridge

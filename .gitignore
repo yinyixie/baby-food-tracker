@@ -1,0 +1,42 @@
+# Node
+node_modules/
+*.log
+npm-debug.log*
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 构建产物
+web/dist/
+api/dist/
+baby-food-tracker-nas.zip
+
+# 数据（SQLite 文件 + 上传文件）
+api/data/*.db
+api/data/*.db-journal
+api/data/*.db-wal
+api/data/*.db-shm
+api/data/uploads/
+**/*.db
+**/*.db-journal
+**/*.db-wal
+**/*.db-shm
+
+# Prisma
+api/prisma/migrations/
+api/prisma/data/
+api/prisma/dev.db
+
+# 环境变量
+.env
+.env.local
+api/.env
+
+# 本地 AI / 编辑器笔记（含本机路径）
+.workbuddy/
+
+# 测试
+coverage/

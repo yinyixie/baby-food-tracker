@@ -1,0 +1,116 @@
+/* web/src/styles.css */
+:root {
+  --bf-primary: #1677ff;
+  --bf-bg: #f7f8fa;
+  --bf-card: #ffffff;
+  --bf-text: #323233;
+  --bf-text-secondary: #646566;
+  --bf-border: #ebedf0;
+  --bf-radius: 12px;
+  /* Vant 组件字号整体大一号（默认 xs10/sm12/md14/lg16/xl18） */
+  --van-font-size-xs: 11px;
+  --van-font-size-sm: 13px;
+  --van-font-size-md: 15px;
+  --van-font-size-lg: 17px;
+  --van-font-size-xl: 19px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bf-bg);
+  color: var(--bf-text);
+  font-size: 15px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  max-width: 768px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.page-container {
+  flex: 1;
+  overflow-y: auto;
+  /* 底部空间由 App.vue 的 van-tabbar placeholder 撑起（含 iPhone 安全区），这里不再写死 */
+}
+
+.section-title {
+  font-size: 14px;
+  color: var(--bf-text-secondary);
+  margin: 16px 16px 8px;
+  font-weight: 500;
+}
+
+.card-block {
+  background: var(--bf-card);
+  border-radius: var(--bf-radius);
+  margin: 0 12px 12px;
+  padding: 12px;
+}
+
+/* Vant 覆盖 */
+.van-tabbar-item--active {
+  color: var(--bf-primary);
+}
+
+/* 食物 chip 列表 */
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  padding: 8px;
+}
+
+.food-chip {
+  border: 1px solid var(--bf-border);
+  border-radius: 8px;
+  padding: 8px 4px;
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.food-chip:active {
+  transform: scale(0.96);
+}
+
+.food-chip.selected {
+  border-color: var(--bf-primary);
+  background: #e6f4ff;
+  color: var(--bf-primary);
+}
+
+.food-chip .emoji {
+  font-size: 23px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.food-chip .name {
+  font-size: 13px;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--bf-text-secondary);
+}

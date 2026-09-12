@@ -1,0 +1,85 @@
+// api/prisma/schema.prisma
+
+generator client {
+  provider      = "prisma-client-js"
+  // NAS Docker 用 node:20-alpine（musl + OpenSSL 3）；绿联可能是 amd64 或 arm64
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "linux-musl-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// 食材库（预设 + 用户可自增）
+model Food {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  category  String                    // "主食" / "蔬菜" / "水果" / "肉类" / "蛋奶" / "其他"
+  emoji     String                    // 🍚 🥦 🍎 ...
+  unit      String   @default("g")     // 份量单位："g" / "ml"
+  isActive  Boolean  @default(true)    // 删除用软删除
+  notes     String?
+  items     RecordItem[]
+  createdAt DateTime @default(now())
+
+  @@index([category])
+}
+
+/// 一次喂食记录 / 事件 / 体重
+model Record {
+  id           Int      @id @default(autoincrement())
+  kind         String   @default("FOOD")  // "FOOD" / "EVENT" / "WEIGHT"
+  recordedAt   DateTime                // 实际喂食时间 / 事件发生时间 / 称重时间
+  mealType     String                  // 食物必填，事件/体重可为空
+  appetite     String                  // 食物必填，事件/体重可为空
+  reaction     String                  // 食物必填，事件/体重可为空
+  reactionNote String?
+  note         String?
+  items        RecordItem[]
+  event        EventDetail?
+  supplement   SupplementDetail?
+  weight       WeightDetail?
+  createdAt    DateTime @default(now())
+
+  @@index([recordedAt])
+  @@index([kind])
+}
+
+/// 补剂详情（仅 kind=SUPPLEMENT 记录），items 存 [{name, dose}]
+model SupplementDetail {
+  id       Int      @id @default(autoincrement())
+  recordId Int      @unique
+  record   Record   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  items    String   // JSON 字符串：[{"name":"维生素AD","dose":"1粒"}]（SQLite 不支持 Json 类型）
+  note     String?
+}
+
+/// 事件详情（仅 kind=EVENT 记录）
+model EventDetail {
+  id          Int      @id @default(autoincrement())
+  recordId    Int      @unique
+  record      Record   @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  title       String                    // 短标题，如"拉稀"、"喂美林"
+  category    String                    // "症状" / "吃药" / "疫苗" / "情绪" / "其他"
+  description String?                   // 详细描述（多行）
+}
+
+/// 体重/身高详情（仅 kind=WEIGHT 记录）
+model WeightDetail {
+  id       Int     @id @default(autoincrement())
+  recordId Int     @unique
+  record   Record  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  weight   Float?                       // 公斤，可空（允许只记身高）
+  height   Float?                       // 厘米，可空（允许只记体重）
+}
+
+/// 一次记录里的食材项（多对多）
+model RecordItem {
+  id       Int    @id @default(autoincrement())
+  recordId Int
+  record   Record @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  foodId   Int
+  food     Food   @relation(fields: [foodId], references: [id])
+  amount   Int?                          // 克数；null 表示未填写
+}
